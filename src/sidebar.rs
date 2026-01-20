@@ -111,9 +111,9 @@ impl Graph {
                     text_box.1 += 1;
                     let n = self.get_name_count(text_box.1);
                     text_box.0 = text_box.0.min(n);
-                    self.text_box = Some(text_box);
                     self.text_scroll_pos.0 += 1;
                     text_box.1 = self.expand_names(text_box.1);
+                    self.text_box = Some(text_box);
                 } else if i.raw_scroll_delta.y > 0.0 {
                     let Some(mut text_box) = self.text_box else {
                         unreachable!()
