@@ -16,6 +16,7 @@ fn is_3d(data: &[GraphType]) -> bool {
     data.iter()
         .any(|c| matches!(c, GraphType::Width3D(_, _, _, _, _) | GraphType::Coord3D(_)))
 }
+//TODO removing/adding lines should not move disabled spots
 #[cfg(target_arch = "wasm32")]
 pub use ui::dpr;
 #[cfg(target_arch = "wasm32")]
@@ -691,19 +692,13 @@ impl Graph {
             .iter()
             .filter_map(|i| self.index_to_name(*i, true).0)
             .collect::<Vec<usize>>();
-        for (i, Name { name, show, .. }) in self
-            .names
-            .iter()
-            .enumerate()
-            .filter_map(|(i, n)| {
-                if !n.name.is_empty() && !blacklist.contains(&i) {
-                    Some(n)
-                } else {
-                    None
-                }
-            })
-            .enumerate()
-        {
+        for (i, Name { name, show, .. }) in self.names.iter().enumerate().filter_map(|(i, n)| {
+            if !n.name.is_empty() && !blacklist.contains(&i) {
+                Some((i, n))
+            } else {
+                None
+            }
+        }) {
             let y = (pos.y + 3.0 * self.font_size / 4.0).round();
             let o = 3.5;
             match self.graph_mode {
