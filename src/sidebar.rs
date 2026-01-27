@@ -596,8 +596,8 @@ impl Graph {
                 self.text_scroll_pos.0 += tb
             }
         }
-        self.text_box = Some(text_box);
         text_box.1 = self.expand_names(text_box.1);
+        self.text_box = Some(text_box);
         #[cfg(feature = "serde")]
         if matches!(self.menu, Menu::Load) {
             self.load(text_box.1)
