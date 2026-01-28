@@ -1586,8 +1586,10 @@ impl Graph {
             } else {
                 self.mouse_position = Some(mpos)
             }
-            if i.pointer_right.is_some() && matches!(self.menu, Menu::Side | Menu::Normal) {
-                if i.pointer_right.unwrap() && mpos.x > 0.0 {
+            if let Some(right) = i.pointer_right
+                && matches!(self.menu, Menu::Side | Menu::Normal)
+            {
+                if right && mpos.x > 0.0 {
                     let get_d = |p: &Dragable| -> f32 {
                         match p {
                             Dragable::Point(p) | Dragable::Points((_, p)) => {
@@ -2353,8 +2355,7 @@ impl Graph {
     }
     #[cfg(feature = "serde")]
     pub(crate) fn save(&mut self) {
-        if self.file_data_raw.is_some() {
-            let fd = self.file_data_raw.as_mut().unwrap();
+        if let Some(fd) = self.file_data_raw.as_mut() {
             let n = self.file_data.as_ref().unwrap();
             update_saves(fd, n);
         }

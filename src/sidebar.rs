@@ -145,7 +145,7 @@ impl Graph {
                     self.select = None;
                 }
             }
-            if i.pointer_right.is_some() {
+            if let Some(right) = i.pointer_right {
                 if let Some(last) = self.last_right_interact {
                     if let Some(new) = self.side_slider {
                         let delta = ((mpos.x - last.x) / 64.0).exp();
@@ -162,7 +162,7 @@ impl Graph {
                             body(format!("{}={}", a, f * delta))
                         }
                     }
-                } else if i.pointer_right.unwrap() && mpos.x < 0.0 {
+                } else if right && mpos.x < 0.0 {
                     self.side_slider = Some(new as usize);
                 } else {
                     self.side_slider = None
