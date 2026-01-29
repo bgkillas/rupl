@@ -225,23 +225,24 @@ impl VulkanRenderer {
                 .unwrap_or_else(ptr::null)
             };
 
+            let mut backend = vk::BackendContext::new(
+                instance.handle().as_raw() as _,
+                device.physical_device().handle().as_raw() as _,
+                device.handle().as_raw() as _,
+                (
+                    queue.handle().as_raw() as _,
+                    queue.queue_family_index() as usize,
+                ),
+                &get_proc,
+            );
+            // WGPU 26 is locked to vulkan 1.3 and skia assumes the highest vulkan API version of the physical device is chosen,
+            // causing it to ask for unsupported features/functions
+            backend.set_max_api_version(vk::Version::new(1, 3, 0));
+
             // We then pass skia_safe references to the whole shebang, resulting in a DirectContext
             // from which we'll be able to get a canvas reference that draws directly to framebuffers
             // on the swapchain.
-            direct_contexts::make_vulkan(
-                &vk::BackendContext::new(
-                    instance.handle().as_raw() as _,
-                    device.physical_device().handle().as_raw() as _,
-                    device.handle().as_raw() as _,
-                    (
-                        queue.handle().as_raw() as _,
-                        queue.queue_family_index() as usize,
-                    ),
-                    &get_proc,
-                ),
-                None,
-            )
-            .unwrap()
+            direct_contexts::make_vulkan(&backend, None).unwrap()
         };
 
         VulkanRenderer {
