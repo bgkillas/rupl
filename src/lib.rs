@@ -150,16 +150,16 @@ impl Graph {
         self.font_width = 0.0;
     }
     ///removes data in nth slot
-    pub fn remove_data(&mut self, n: usize) {
-        self.data.remove(n);
+    pub fn remove_data(&mut self, n: usize) -> GraphType {
+        self.data.remove(n)
+    }
+    ///takes the data storage object
+    pub fn take_data(&mut self) -> Vec<GraphType> {
+        std::mem::take(&mut self.data)
     }
     ///insert and replace data into nth slot
     pub fn insert_data(&mut self, data: GraphType, n: usize) {
-        if self.data.len() == n {
-            self.data.push(data)
-        } else {
-            self.data[n] = data
-        }
+        self.data.insert(n, data);
     }
     ///sets data and resets domain coloring cache
     pub fn set_data(&mut self, data: Vec<GraphType>) {
