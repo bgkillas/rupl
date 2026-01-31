@@ -31,7 +31,7 @@ pub enum GraphMode {
 }
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug)]
-pub enum GraphType {
+pub enum GraphData {
     ///2d data set where the first element in the vector maps to the first float on the x axis,
     ///and the last element in the vector maps to the last float on the x axis, with even spacing
     Width(Vec<Complex>, f64, f64),
@@ -53,7 +53,49 @@ pub enum GraphType {
     ///a point, 2d only
     Point(Vec2),
     ///a list of graphs, so that all graphs will be the same color
-    List(Vec<GraphType>),
+    List(Vec<GraphData>),
+    None,
+}
+impl GraphData {
+    pub fn set_type(&mut self, ty: GraphType, cap: usize) {
+        match (self, ty) {
+            (GraphData::Width(v, _, _), GraphType::Width) => v.reserve(cap.saturating_sub(v.len())),
+            (GraphData::Coord(v), GraphType::Coord) => v.reserve(cap.saturating_sub(v.len())),
+            (GraphData::Width3D(v, _, _, _, _), GraphType::Width3D) => {
+                v.reserve(cap.saturating_sub(v.len()))
+            }
+            (GraphData::Coord3D(v), GraphType::Coord3D) => v.reserve(cap.saturating_sub(v.len())),
+            (GraphData::Constant(_, _), GraphType::Constant) => {}
+            (GraphData::Point(_), GraphType::Point) => {}
+            (GraphData::List(_), GraphType::List) => {}
+            (GraphData::None, GraphType::None) => {}
+            (s, ty) => {
+                *s = match ty {
+                    GraphType::Width => GraphData::Width(Vec::with_capacity(cap), 0.0, 0.0),
+                    GraphType::Coord => GraphData::Coord(Vec::with_capacity(cap)),
+                    GraphType::Width3D => {
+                        GraphData::Width3D(Vec::with_capacity(cap), 0.0, 0.0, 0.0, 0.0)
+                    }
+                    GraphType::Coord3D => GraphData::Coord3D(Vec::with_capacity(cap)),
+                    GraphType::Constant => GraphData::Constant(Complex::Real(0.0), false),
+                    GraphType::Point => GraphData::Point(Vec2::splat(0.0)),
+                    GraphType::List => GraphData::List(Vec::with_capacity(cap)),
+                    GraphType::None => GraphData::None,
+                }
+            }
+        }
+    }
+}
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug)]
+pub enum GraphType {
+    Width,
+    Coord,
+    Width3D,
+    Coord3D,
+    Constant,
+    Point,
+    List,
     None,
 }
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -233,7 +275,7 @@ pub struct Graph {
     pub renderer: Option<crate::skia_vulkan::renderer::VulkanRenderer>,
     ///current data sets
     #[cfg_attr(feature = "serde", serde(skip))]
-    pub data: Vec<GraphType>,
+    pub data: Vec<GraphData>,
     ///current data sets names for labeling, ordered by data
     #[cfg_attr(feature = "serde", serde(default))]
     pub names: Vec<Name>,

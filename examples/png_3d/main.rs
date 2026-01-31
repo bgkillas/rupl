@@ -4,7 +4,7 @@ const WIDTH: usize = 1080;
 fn main() -> Result<(), std::io::Error> {
     let (start, end) = (-0.5, 0.5);
     let pts = points(start, end);
-    let graph = GraphType::Width3D(pts, start, start, end, end);
+    let graph = GraphData::Width3D(pts, start, start, end, end);
     let name = Name::new("x+y".to_string());
     let mut plot = Graph::new(vec![graph], vec![name], true, start, end);
     let mut stdin = std::io::stdout().lock();

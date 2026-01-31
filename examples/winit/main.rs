@@ -1,4 +1,4 @@
-use rupl::types::{Complex, Graph, GraphType};
+use rupl::types::{Complex, Graph, GraphData};
 use softbuffer::Surface;
 use std::sync::Arc;
 use winit::application::ApplicationHandler;
@@ -9,7 +9,7 @@ use winit::window::{Window, WindowId};
 fn main() -> Result<(), EventLoopError> {
     let mut app = App::default();
     app.plot
-        .set_data(vec![GraphType::Width(points(-2.0, 2.0), -2.0, 2.0)]);
+        .set_data(vec![GraphData::Width(points(-2.0, 2.0), -2.0, 2.0)]);
     let event_loop = winit::event_loop::EventLoop::new()?;
     event_loop.run_app(&mut app)
 }

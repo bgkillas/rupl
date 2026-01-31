@@ -4,7 +4,7 @@ fn main() -> Result<(), std::io::Error> {
     let (start, end) = (-2.0, 2.0);
     let (width, height) = (1920, 1080);
     let pts = points(start, end);
-    let graph = GraphType::Width(pts, start, end);
+    let graph = GraphData::Width(pts, start, end);
     let name = Name::new("x".to_string());
     let mut plot = Graph::new(vec![graph], vec![name], false, start, end);
     let mut stdin = std::io::stdout().lock();

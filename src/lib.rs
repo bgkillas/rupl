@@ -12,9 +12,9 @@ use rayon::slice::ParallelSliceMut;
 use std::f64::consts::{PI, TAU};
 #[cfg(feature = "serde")]
 use std::io::BufRead;
-fn is_3d(data: &[GraphType]) -> bool {
+fn is_3d(data: &[GraphData]) -> bool {
     data.iter()
-        .any(|c| matches!(c, GraphType::Width3D(_, _, _, _, _) | GraphType::Coord3D(_)))
+        .any(|c| matches!(c, GraphData::Width3D(_, _, _, _, _) | GraphData::Coord3D(_)))
 }
 //TODO removing/adding lines should not move disabled spots
 #[cfg(target_arch = "wasm32")]
@@ -38,7 +38,7 @@ impl Graph {
     ///start,end are the initial visual bounds of the box
     #[allow(clippy::field_reassign_with_default)]
     pub fn new(
-        data: Vec<GraphType>,
+        data: Vec<GraphData>,
         names: Vec<Name>,
         is_complex: bool,
         start: f64,
@@ -150,19 +150,19 @@ impl Graph {
         self.font_width = 0.0;
     }
     ///removes data in nth slot
-    pub fn remove_data(&mut self, n: usize) -> GraphType {
+    pub fn remove_data(&mut self, n: usize) -> GraphData {
         self.data.remove(n)
     }
     ///takes the data storage object
-    pub fn take_data(&mut self) -> Vec<GraphType> {
+    pub fn take_data(&mut self) -> Vec<GraphData> {
         std::mem::take(&mut self.data)
     }
     ///insert and replace data into nth slot
-    pub fn insert_data(&mut self, data: GraphType, n: usize) {
+    pub fn insert_data(&mut self, data: GraphData, n: usize) {
         self.data.insert(n, data);
     }
     ///sets data and resets domain coloring cache
-    pub fn set_data(&mut self, data: Vec<GraphType>) {
+    pub fn set_data(&mut self, data: Vec<GraphData>) {
         self.data = data;
         self.cache = None;
     }
@@ -774,7 +774,7 @@ impl Graph {
             let p = self.to_coord(pos.to_pos());
             if !self.disable_coord {
                 let s = if self.graph_mode == GraphMode::DomainColoring {
-                    if let GraphType::Width3D(data, sx, sy, ex, ey) = &self.data[0] {
+                    if let GraphData::Width3D(data, sx, sy, ex, ey) = &self.data[0] {
                         let len = data.len().isqrt();
                         let i = ((p.0 - sx) / (ex - sx) * len as f64).round() as usize;
                         let j = ((p.1 - sy) / (ey - sy) * len as f64).round() as usize;
@@ -2550,16 +2550,16 @@ impl Graph {
         G: Fn(&mut Option<Image>, usize, usize, &mut Vec<u8>),
     {
         let mut buffer: Option<Vec<(f32, Draw, Color)>> = (!self.fast_3d()).then(|| {
-            fn su(a: &GraphType) -> usize {
+            fn su(a: &GraphData) -> usize {
                 match a {
-                    GraphType::Coord(_) => 0,
-                    GraphType::Coord3D(d) => d.len(),
-                    GraphType::Width(_, _, _) => 0,
-                    GraphType::Width3D(d, _, _, _, _) => d.len(),
-                    GraphType::Constant(_, _) => 0,
-                    GraphType::Point(_) => 0,
-                    GraphType::List(a) => a.iter().map(su).sum(),
-                    GraphType::None => 0,
+                    GraphData::Coord(_) => 0,
+                    GraphData::Coord3D(d) => d.len(),
+                    GraphData::Width(_, _, _) => 0,
+                    GraphData::Width3D(d, _, _, _, _) => d.len(),
+                    GraphData::Constant(_, _) => 0,
+                    GraphData::Point(_) => 0,
+                    GraphData::List(a) => a.iter().map(su).sum(),
+                    GraphData::None => 0,
                 }
             }
             let n = self.data.iter().map(su).sum::<usize>()
@@ -2599,7 +2599,7 @@ impl Graph {
         tex: &G,
         buffer: &mut Option<Vec<(f32, Draw, Color)>>,
         k: usize,
-        data: &GraphType,
+        data: &GraphData,
         cache: &mut Option<Image>,
         image_buffer: &mut Vec<u8>,
     ) where
@@ -2607,11 +2607,11 @@ impl Graph {
     {
         let (mut a, mut b, mut c) = (None, None, None);
         match data {
-            GraphType::None => {}
-            GraphType::List(a) => a.iter().for_each(|data| {
+            GraphData::None => {}
+            GraphData::List(a) => a.iter().for_each(|data| {
                 self.plot_type(painter, tex, buffer, k, data, cache, image_buffer)
             }),
-            GraphType::Width(data, start, end) => match self.graph_mode {
+            GraphData::Width(data, start, end) => match self.graph_mode {
                 GraphMode::DomainColoring | GraphMode::Slice | GraphMode::SlicePolar => {}
                 GraphMode::Normal => {
                     for (i, y) in data.iter().enumerate() {
@@ -2734,7 +2734,7 @@ impl Graph {
                     }
                 }
             },
-            GraphType::Coord(data) => match self.graph_mode {
+            GraphData::Coord(data) => match self.graph_mode {
                 GraphMode::DomainColoring | GraphMode::Slice | GraphMode::SlicePolar => {}
                 GraphMode::Normal => {
                     for (x, y) in data {
@@ -2851,7 +2851,7 @@ impl Graph {
                     }
                 }
             },
-            GraphType::Width3D(data, start_x, start_y, end_x, end_y) => match self.graph_mode {
+            GraphData::Width3D(data, start_x, start_y, end_x, end_y) => match self.graph_mode {
                 GraphMode::Normal => {
                     let len = data.len().isqrt();
                     let mut last = Vec::with_capacity(len);
@@ -3178,7 +3178,7 @@ impl Graph {
                     }
                 }
             },
-            GraphType::Coord3D(data) => match self.graph_mode {
+            GraphData::Coord3D(data) => match self.graph_mode {
                 GraphMode::Slice
                 | GraphMode::DomainColoring
                 | GraphMode::Flatten
@@ -3281,7 +3281,7 @@ impl Graph {
                     }
                 }
             },
-            GraphType::Constant(c, on_x) => match self.graph_mode {
+            GraphData::Constant(c, on_x) => match self.graph_mode {
                 GraphMode::Normal | GraphMode::Slice => {
                     let len = 17;
                     if self.is_3d {
@@ -3478,7 +3478,7 @@ impl Graph {
                 }
                 GraphMode::DomainColoring | GraphMode::Depth | GraphMode::Flatten => {}
             },
-            GraphType::Point(p) => match self.graph_mode {
+            GraphData::Point(p) => match self.graph_mode {
                 GraphMode::DomainColoring //TODO fix dc
                 | GraphMode::Flatten
                 | GraphMode::Normal
