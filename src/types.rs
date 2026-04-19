@@ -1187,8 +1187,8 @@ impl From<&egui::InputState> for InputState {
             keys_pressed,
             modifiers: val.modifiers.into(),
             raw_scroll_delta: Vec2 {
-                x: val.raw_scroll_delta.x as f64,
-                y: val.raw_scroll_delta.y as f64,
+                x: val.smooth_scroll_delta.x as f64,
+                y: val.smooth_scroll_delta.y as f64,
             },
             pointer_pos: val
                 .pointer

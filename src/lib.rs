@@ -463,10 +463,10 @@ impl Graph {
     }
     #[cfg(feature = "egui")]
     ///repaints the screen
-    pub fn update(&mut self, ctx: &egui::Context, ui: &egui::Ui) {
-        self.font_width(ctx);
-        let rect = ctx.available_rect();
-        let (width, height) = (rect.width() as f64, rect.height() as f64);
+    pub fn update(&mut self, ui: &egui::Ui) {
+        self.font_width(ui);
+        let rect = ui.available_size();
+        let (width, height) = (rect.x as f64, rect.y as f64);
         self.set_screen(width, height, true, true);
         let mut painter = Painter::new(ui, self.draw_offset);
         let plot = |painter: &mut Painter, graph: &mut Graph| graph.plot(painter, ui);
@@ -1212,9 +1212,9 @@ impl Graph {
         }
     }
     #[cfg(feature = "egui")]
-    fn font_width(&mut self, ctx: &egui::Context) {
+    fn font_width(&mut self, ui: &egui::Ui) {
         if self.font_width == 0.0 {
-            let width = ctx.fonts_mut(|f| {
+            let width = ui.fonts_mut(|f| {
                 f.layout_no_wrap(
                     " ".to_string(),
                     egui::FontId::monospace(self.font_size),
